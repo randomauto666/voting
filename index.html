@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jahresabstimmung</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ ÖFFENTLICHE SEITE ============ -->
+  <div id="publicView">
+    <header class="masthead">
+      <div>
+        <h1>Jahresabstimmung</h1>
+        <p class="tagline">Ein Vote pro Feld – deine Stimme bleibt geheim.</p>
+      </div>
+    </header>
+
+    <div id="publicGrid" class="grid"></div>
+  </div>
+
+  <!-- ============ ADMIN-SEITE ============ -->
+  <div id="adminView" style="display:none;">
+    <a class="back-link" href="#">← Zurück zur Abstimmung</a>
+
+    <section id="adminLogin" class="panel" style="display:none;">
+      <h2>Admin-Anmeldung</h2>
+      <form id="loginForm" class="field-row">
+        <div class="field-group">
+          <label for="inEmail">E-Mail</label>
+          <input id="inEmail" name="email" type="email" required autocomplete="username">
+        </div>
+        <div class="field-group">
+          <label for="inPassword">Passwort</label>
+          <input id="inPassword" name="password" type="password" required autocomplete="current-password">
+        </div>
+        <button class="btn" type="submit">Anmelden</button>
+      </form>
+      <p id="loginError" class="hint" style="display:none; color:#A63A34;"></p>
+    </section>
+
+    <div id="adminContent" style="display:none;">
+      <header class="masthead" style="padding-top:0; border:none; margin-bottom:28px;">
+        <div>
+          <h1 style="font-size:2rem;">Adminbereich</h1>
+          <p class="tagline">Felder anlegen und Ergebnisse einsehen.</p>
+        </div>
+        <button id="logoutBtn" class="btn secondary" type="button">Abmelden</button>
+      </header>
+
+      <section class="panel">
+        <h2>Neues Feld eintragen</h2>
+        <form id="addForm" class="field-row">
+          <div class="field-group">
+            <label for="inKlasse">Klasse</label>
+            <input id="inKlasse" name="klasse" type="text" placeholder="z. B. 8b" required>
+          </div>
+          <div class="field-group">
+            <label for="inNote">Note</label>
+            <input id="inNote" name="note" type="text" placeholder="z. B. 1" required>
+          </div>
+          <button class="btn" type="submit">Eintragen</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Angelegte Felder</h2>
+        <table class="entry-table" id="entryTable">
+          <thead>
+            <tr><th>Klasse</th><th>Note</th><th></th></tr>
+          </thead>
+          <tbody id="entryTableBody"></tbody>
+        </table>
+        <p id="entryEmptyHint" class="hint" style="display:none;">Noch keine Felder angelegt.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Statistik – Stimmen pro Feld</h2>
+        <div id="chart" class="chart"></div>
+        <p class="hint">
+          Zählt die Stimmen aller Abstimmenden zentral aus Supabase und aktualisiert sich live,
+          sobald neue Stimmen eingehen.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Verwaltung</h2>
+        <div class="actions-row">
+          <button id="resetVotesBtn" class="btn danger" type="button">Alle Stimmen zurücksetzen</button>
+        </div>
+        <p class="hint">
+          Setzt die Stimmen aller Felder für <strong>alle</strong> Abstimmenden auf 0 zurück
+          (gilt sofort für jeden, da die Daten zentral in Supabase liegen).
+        </p>
+      </section>
+    </div>
+  </div>
+
+</div>
+
+<div id="configWarning" class="panel" style="display:none; border-color:#A63A34;">
+  <h2 style="color:#A63A34;">Supabase noch nicht eingerichtet</h2>
+  <p class="hint">In <code>config.js</code> fehlen noch die echten Werte für <code>SUPABASE_URL</code>
+  und <code>SUPABASE_ANON_KEY</code>. Siehe README.md.</p>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
