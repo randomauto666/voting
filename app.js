@@ -10,19 +10,18 @@
 
 const LS_VOTED = 'ja_voted'; // { [entryId]: true } – nur lokale Klick-Sperre
 
+// Supabase-Projekt: Settings → API. Der "anon"/"publishable" key ist zur
+// Verwendung im Browser vorgesehen (kein Geheimnis) – die eigentliche
+// Absicherung übernehmen die RLS-Policies in Supabase (siehe supabase.sql).
+const SUPABASE_URL = 'https://fofncyaweychquyconmt.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_YpaPyjX6jtabCzZZCI7y-w_EuTtvCiF';
+
 let sb = null;
 let entries = []; // [{ id, klasse, note, count }]
 let votedLocal = {};
 let session = null;
 
 /* ---------- Setup ---------- */
-
-function isConfigured() {
-  return typeof SUPABASE_URL === 'string' &&
-    typeof SUPABASE_ANON_KEY === 'string' &&
-    !SUPABASE_URL.includes('DEIN-PROJEKT') &&
-    !SUPABASE_ANON_KEY.includes('DEIN-ANON-KEY');
-}
 
 function loadVotedLocal() {
   votedLocal = JSON.parse(localStorage.getItem(LS_VOTED) || 'null') || {};
@@ -269,13 +268,6 @@ function subscribeRealtime() {
 /* ---------- Init ---------- */
 
 async function init() {
-  if (!isConfigured()) {
-    document.getElementById('configWarning').style.display = 'block';
-    document.getElementById('publicView').style.display = 'none';
-    document.getElementById('adminView').style.display = 'none';
-    return;
-  }
-
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   loadVotedLocal();
 
