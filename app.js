@@ -1,14 +1,13 @@
 /* ---------------------------------------------------------
    Jahresabstimmung – Logik mit Supabase als zentralem Speicher
-   und Supabase Auth (E-Mail/Passwort) für den Adminbereich.
 
-   Voten ist weiterhin öffentlich (kein Login nötig). Anlegen/
-   Löschen von Feldern und Zurücksetzen der Stimmen erfordert
-   eine Anmeldung – abgesichert über RLS-Policies in Supabase
-   (siehe supabase.sql), nicht nur über die Oberfläche hier.
+   Der Admin legt nur Klassen an. Jede Note, die eine
+   abstimmende Person vergibt, ist gleichzeitig ihre Stimme
+   (1 = sehr gut ... 6 = ungenügend). Pro Klasse kann jeder
+   Browser genau einmal eine Note abgeben.
 --------------------------------------------------------- */
 
-const LS_VOTED = 'ja_voted'; // { [entryId]: true } – nur lokale Klick-Sperre
+const LS_VOTED = 'ja_voted'; // { [entryId]: note } – lokale Sperre + eigene Note
 
 // Supabase-Projekt: Settings → API. Der "anon"/"publishable" key ist zur
 // Verwendung im Browser vorgesehen (kein Geheimnis) – die eigentliche
@@ -17,7 +16,8 @@ const SUPABASE_URL = 'https://fofncyaweychquyconmt.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_YpaPyjX6jtabCzZZCI7y-w_EuTtvCiF';
 
 let sb = null;
-let entries = []; // [{ id, klasse, note, count }]
+let entries = []; // öffentliche Ansicht: [{ id, klasse }]
+let adminRows = []; // adminansicht: [{ entry_id, klasse, vote_count, avg_note }]
 let votedLocal = {};
 let session = null;
 
@@ -35,7 +35,7 @@ function saveVotedLocal() {
 async function fetchEntries() {
   const { data, error } = await sb
     .from('entries')
-    .select('id, klasse, note, created_at, votes(count)')
+    .select('id, klasse, created_at')
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -43,19 +43,23 @@ async function fetchEntries() {
     showToast('Fehler beim Laden der Daten.');
     return;
   }
+  entries = data || [];
+}
 
-  entries = (data || []).map(e => ({
-    id: e.id,
-    klasse: e.klasse,
-    note: e.note,
-    count: (e.votes && e.votes[0] && e.votes[0].count) || 0
-  }));
+async function fetchAdminStats() {
+  const { data, error } = await sb.rpc('admin_stats');
+  if (error) {
+    console.error(error);
+    showToast('Fehler beim Laden der Statistik.');
+    return;
+  }
+  adminRows = data || [];
 }
 
 /* ---------- Hilfsfunktionen ---------- */
 
-function makeId(klasse, note) {
-  const base = (klasse + '-' + note).toLowerCase().replace(/\s+/g, '');
+function makeId(klasse) {
+  const base = klasse.toLowerCase().replace(/\s+/g, '');
   let id = base, n = 1;
   const existing = new Set(entries.map(e => e.id));
   while (existing.has(id)) { n += 1; id = base + '-' + n; }
@@ -81,48 +85,48 @@ function escapeHtml(str) {
 function renderPublic() {
   const grid = document.getElementById('publicGrid');
   if (entries.length === 0) {
-    grid.innerHTML = '<div class="empty">Noch keine Felder zum Abstimmen angelegt.</div>';
+    grid.innerHTML = '<div class="empty">Noch keine Klassen zum Abstimmen angelegt.</div>';
     return;
   }
   grid.innerHTML = entries.map(e => {
-    const voted = !!votedLocal[e.id];
+    const votedNote = votedLocal[e.id];
+    const noteButtons = [1, 2, 3, 4, 5, 6].map(n =>
+      `<button class="note-btn" data-id="${e.id}" data-note="${n}">${n}</button>`
+    ).join('');
+
     return `
       <div class="card">
         <div class="field">
           <span class="label">Klasse</span>
           <span class="value">${escapeHtml(e.klasse)}</span>
         </div>
-        <div class="field note">
-          <span class="label">Note</span>
-          <span class="value">${escapeHtml(e.note)}</span>
-        </div>
-        <button class="vote-btn ${voted ? 'voted' : ''}" data-id="${e.id}" ${voted ? 'disabled' : ''}>
-          ${voted ? 'Abgestimmt ✓' : 'Abstimmen'}
-        </button>
+        ${votedNote
+          ? `<div class="voted-msg">Abgestimmt: Note ${votedNote} ✓</div>`
+          : `<div class="note-buttons">${noteButtons}</div>`}
       </div>`;
   }).join('');
 
-  grid.querySelectorAll('.vote-btn').forEach(btn => {
-    btn.addEventListener('click', () => castVote(btn.dataset.id));
+  grid.querySelectorAll('.note-btn').forEach(btn => {
+    btn.addEventListener('click', () => castVote(btn.dataset.id, Number(btn.dataset.note)));
   });
 }
 
-async function castVote(id) {
+async function castVote(id, note) {
   if (votedLocal[id]) return;
-  votedLocal[id] = true;
+  votedLocal[id] = note;
   saveVotedLocal();
   renderPublic(); // sofort sperren, kein Doppelklick
 
-  const { error } = await sb.rpc('increment_vote', { p_entry_id: id });
+  const { error } = await sb.from('ratings').insert({ entry_id: id, note });
   if (error) {
     console.error(error);
     delete votedLocal[id];
     saveVotedLocal();
     renderPublic();
-    showToast('Stimme konnte nicht gespeichert werden.');
+    showToast('Note konnte nicht gespeichert werden.');
     return;
   }
-  showToast('Deine Stimme wurde gespeichert.');
+  showToast('Deine Note wurde gespeichert.');
 }
 
 /* ---------- Admin: Login ---------- */
@@ -149,22 +153,27 @@ async function handleLogout() {
   await route();
 }
 
-/* ---------- Admin: Felder verwalten ---------- */
+/* ---------- Admin: Klassen verwalten ---------- */
+
+function fmtAvg(v) {
+  return v === null || v === undefined ? '–' : Number(v).toFixed(1);
+}
 
 function renderEntryTable() {
   const body = document.getElementById('entryTableBody');
   const emptyHint = document.getElementById('entryEmptyHint');
-  if (entries.length === 0) {
+  if (adminRows.length === 0) {
     body.innerHTML = '';
     emptyHint.style.display = 'block';
     return;
   }
   emptyHint.style.display = 'none';
-  body.innerHTML = entries.map(e => `
+  body.innerHTML = adminRows.map(r => `
     <tr>
-      <td class="num">${escapeHtml(e.klasse)}</td>
-      <td class="num">${escapeHtml(e.note)}</td>
-      <td><button class="btn danger" style="padding:4px 10px;font-size:0.78rem;" data-id="${e.id}">Löschen</button></td>
+      <td class="num">${escapeHtml(r.klasse)}</td>
+      <td class="num">${r.vote_count}</td>
+      <td class="num">${fmtAvg(r.avg_note)}</td>
+      <td><button class="btn danger" style="padding:4px 10px;font-size:0.78rem;" data-id="${r.entry_id}">Löschen</button></td>
     </tr>
   `).join('');
 
@@ -173,32 +182,32 @@ function renderEntryTable() {
   });
 }
 
-async function addEntry(klasse, note) {
-  const id = makeId(klasse, note);
-  const { error } = await sb.from('entries').insert({ id, klasse, note });
+async function addEntry(klasse) {
+  const id = makeId(klasse);
+  const { error } = await sb.from('entries').insert({ id, klasse });
   if (error) {
     console.error(error);
-    showToast('Feld konnte nicht angelegt werden.');
+    showToast('Klasse konnte nicht angelegt werden.');
     return;
   }
-  showToast('Feld hinzugefügt.');
+  showToast('Klasse hinzugefügt.');
   await refreshAdmin();
 }
 
 async function deleteEntry(id) {
-  if (!confirm('Dieses Feld inkl. seiner Stimmen wirklich löschen?')) return;
+  if (!confirm('Diese Klasse inkl. ihrer Stimmen wirklich löschen?')) return;
   const { error } = await sb.from('entries').delete().eq('id', id);
   if (error) {
     console.error(error);
-    showToast('Feld konnte nicht gelöscht werden.');
+    showToast('Klasse konnte nicht gelöscht werden.');
     return;
   }
   await refreshAdmin();
 }
 
 async function resetVotes() {
-  if (!confirm('Wirklich ALLE Stimmen aller Abstimmenden zurücksetzen?')) return;
-  const { error } = await sb.rpc('reset_all_votes');
+  if (!confirm('Wirklich ALLE abgegebenen Noten aller Abstimmenden löschen?')) return;
+  const { error } = await sb.rpc('reset_all_ratings');
   if (error) {
     console.error(error);
     showToast('Zurücksetzen fehlgeschlagen.');
@@ -212,18 +221,21 @@ async function resetVotes() {
 
 function renderChart() {
   const chart = document.getElementById('chart');
-  if (entries.length === 0) {
-    chart.innerHTML = '<p class="hint">Noch keine Felder für eine Statistik vorhanden.</p>';
+  if (adminRows.length === 0) {
+    chart.innerHTML = '<p class="hint">Noch keine Klassen für eine Statistik vorhanden.</p>';
     return;
   }
-  const rows = [...entries].sort((a, b) => b.count - a.count);
-  const max = Math.max(1, ...rows.map(r => r.count));
+  const rows = [...adminRows].sort((a, b) => b.vote_count - a.vote_count);
+  const max = Math.max(1, ...rows.map(r => r.vote_count));
 
-  chart.innerHTML = rows.map(e => `
+  chart.innerHTML = rows.map(r => `
     <div class="chart-row">
-      <div class="bar-label">${escapeHtml(e.klasse)} · ${escapeHtml(e.note)}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(e.count / max) * 100}%"></div></div>
-      <div class="bar-count">${e.count}</div>
+      <div class="bar-label">
+        ${escapeHtml(r.klasse)}
+        <span class="bar-sub">Ø ${fmtAvg(r.avg_note)}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(r.vote_count / max) * 100}%"></div></div>
+      <div class="bar-count">${r.vote_count}</div>
     </div>
   `).join('');
 }
@@ -231,7 +243,7 @@ function renderChart() {
 /* ---------- Gesamtrendering ---------- */
 
 async function refreshAdmin() {
-  await fetchEntries();
+  await fetchAdminStats();
   renderEntryTable();
   renderChart();
 }
@@ -261,7 +273,7 @@ async function route() {
 function subscribeRealtime() {
   sb.channel('jahresabstimmung-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => route())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => route())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'ratings' }, () => route())
     .subscribe();
 }
 
@@ -283,9 +295,8 @@ async function init() {
   document.getElementById('addForm').addEventListener('submit', ev => {
     ev.preventDefault();
     const klasse = document.getElementById('inKlasse').value.trim();
-    const note = document.getElementById('inNote').value.trim();
-    if (!klasse || !note) return;
-    addEntry(klasse, note);
+    if (!klasse) return;
+    addEntry(klasse);
     ev.target.reset();
     document.getElementById('inKlasse').focus();
   });
