@@ -130,37 +130,42 @@ header.masthead .tagline{
 .card .field .value{
   font-family: 'Fraunces', serif;
   font-weight: 600;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   color: var(--ink);
 }
 
-.card .field.note .value{ font-size: 1.8rem; color: var(--gold); }
+.note-buttons{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
-button.vote-btn{
-  margin-top: 4px;
-  border: 1px solid var(--gold);
-  background: var(--gold);
-  color: #1B1500;
-  font-family: 'Work Sans', sans-serif;
+button.note-btn{
+  flex: 1 1 0;
+  min-width: 38px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-family: 'Fraunces', serif;
   font-weight: 600;
-  font-size: 0.9rem;
-  padding: 12px 14px;
+  font-size: 1.05rem;
+  padding: 10px 0;
   border-radius: 7px;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   -webkit-tap-highlight-color: transparent;
 }
-button.vote-btn:hover{ background: var(--gold-dim); border-color: var(--gold-dim); }
-button.vote-btn:active{ transform: scale(0.97); }
+button.note-btn:hover{ border-color: var(--gold); color: var(--gold); }
+button.note-btn:active{ transform: scale(0.95); }
 
-button.vote-btn.voted{
-  background: transparent;
+.voted-msg{
+  font-size: 0.9rem;
   color: var(--red);
-  border-color: var(--red-dim);
-  cursor: default;
-  opacity: 0.85;
+  border: 1px solid var(--red-dim);
+  border-radius: 7px;
+  padding: 10px 0;
+  text-align: center;
 }
-button.vote-btn.voted:hover{ background: transparent; }
 
 .empty{
   color: var(--muted);
@@ -295,6 +300,12 @@ table.entry-table td.num{ font-family: 'Fraunces', serif; font-weight: 600; colo
   text-overflow: ellipsis;
 }
 
+.chart-row .bar-sub{
+  color: var(--muted);
+  font-size: 0.76rem;
+  margin-left: 6px;
+}
+
 .chart-row .bar-track{
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -398,6 +409,9 @@ input[type="file"]{
 
 @media (max-width: 400px){
   header.masthead h1{ font-size: 2rem; }
+  .card{ padding: 18px 14px 16px; }
+  .note-buttons{ gap: 5px; }
+  button.note-btn{ min-width: 30px; padding: 9px 0; font-size: 0.95rem; }
 }
 
 @media (prefers-reduced-motion: reduce){
