@@ -18,6 +18,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_YpaPyjX6jtabCzZZCI7y-w_EuTtvCiF';
 let sb = null;
 let entries = []; // öffentliche Ansicht: [{ id, klasse }]
 let adminRows = []; // adminansicht: [{ entry_id, klasse, vote_count, avg_note }]
+let noteCounts = {}; // { [entry_id]: { 1: count, ..., 6: count } }
 let votedLocal = {};
 let session = null;
 
@@ -54,6 +55,20 @@ async function fetchAdminStats() {
     return;
   }
   adminRows = data || [];
+}
+
+async function fetchNoteBreakdown() {
+  const { data, error } = await sb.rpc('admin_note_breakdown');
+  if (error) {
+    console.error(error);
+    showToast('Fehler beim Laden der Notenverteilung.');
+    return;
+  }
+  noteCounts = {};
+  (data || []).forEach(row => {
+    if (!noteCounts[row.entry_id]) noteCounts[row.entry_id] = {};
+    noteCounts[row.entry_id][row.note] = Number(row.cnt);
+  });
 }
 
 /* ---------- Hilfsfunktionen ---------- */
@@ -240,12 +255,43 @@ function renderChart() {
   `).join('');
 }
 
+function renderDistribution() {
+  const wrap = document.getElementById('distribution');
+  if (adminRows.length === 0) {
+    wrap.innerHTML = '<p class="hint">Noch keine Klassen für eine Verteilung vorhanden.</p>';
+    return;
+  }
+
+  wrap.innerHTML = adminRows.map(r => {
+    const counts = noteCounts[r.entry_id] || {};
+    const max = Math.max(1, ...[1, 2, 3, 4, 5, 6].map(n => counts[n] || 0));
+
+    const rows = [1, 2, 3, 4, 5, 6].map(n => {
+      const c = counts[n] || 0;
+      return `
+        <div class="dist-row">
+          <div class="dist-label">Note ${n}</div>
+          <div class="dist-track"><div class="dist-fill" style="width:${(c / max) * 100}%"></div></div>
+          <div class="dist-count">${c}</div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="dist-group">
+        <h3 class="dist-heading">${escapeHtml(r.klasse)} <span class="dist-total">${r.vote_count} Stimmen</span></h3>
+        <div class="dist-rows">${rows}</div>
+      </div>`;
+  }).join('');
+}
+
 /* ---------- Gesamtrendering ---------- */
 
 async function refreshAdmin() {
   await fetchAdminStats();
+  await fetchNoteBreakdown();
   renderEntryTable();
   renderChart();
+  renderDistribution();
 }
 
 /* ---------- Routing ---------- */
