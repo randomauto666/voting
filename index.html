@@ -49,7 +49,7 @@
       <header class="masthead admin-masthead">
         <div>
           <h1 class="admin-title">Adminbereich</h1>
-          <p class="tagline">Felder anlegen und Ergebnisse einsehen.</p>
+          <p class="tagline">Klassen anlegen und Ergebnisse einsehen.</p>
         </div>
         <button id="logoutBtn" class="btn secondary" type="button">Abmelden</button>
       </header>
@@ -77,11 +77,19 @@
       </section>
 
       <section class="panel">
-        <h2>Statistik – Stimmen pro Feld</h2>
+        <h2>Statistik – Stimmen pro Klasse</h2>
         <div id="chart" class="chart"></div>
         <p class="hint">
           Zählt die Stimmen aller Abstimmenden zentral aus Supabase und aktualisiert sich live,
           sobald neue Stimmen eingehen.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Notenverteilung je Klasse</h2>
+        <div id="distribution"></div>
+        <p class="hint">
+          Zeigt für jede Klasse, wie oft welche Note (1–6) vergeben wurde.
         </p>
       </section>
 
@@ -91,7 +99,7 @@
           <button id="resetVotesBtn" class="btn danger" type="button">Alle Stimmen zurücksetzen</button>
         </div>
         <p class="hint">
-          Setzt die Stimmen aller Felder für <strong>alle</strong> Abstimmenden auf 0 zurück
+          Setzt die Stimmen aller Klassen für <strong>alle</strong> Abstimmenden auf 0 zurück
           (gilt sofort für jeden, da die Daten zentral in Supabase liegen).
         </p>
       </section>
