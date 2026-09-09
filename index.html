@@ -17,7 +17,7 @@
     <header class="masthead">
       <div>
         <h1>Jahresabstimmung</h1>
-        <p class="tagline">Ein Vote pro Feld – deine Stimme bleibt geheim.</p>
+        <p class="tagline">Vergib pro Klasse eine Note von 1 (sehr gut) bis 6 (ungenügend) – das ist deine Stimme.</p>
       </div>
       <a class="admin-link" href="#adminpage">Admin</a>
     </header>
@@ -55,29 +55,25 @@
       </header>
 
       <section class="panel">
-        <h2>Neues Feld eintragen</h2>
+        <h2>Neue Klasse eintragen</h2>
         <form id="addForm" class="field-row">
           <div class="field-group">
             <label for="inKlasse">Klasse</label>
             <input id="inKlasse" name="klasse" type="text" placeholder="z. B. 8b" required>
-          </div>
-          <div class="field-group">
-            <label for="inNote">Note</label>
-            <input id="inNote" name="note" type="text" placeholder="z. B. 1" required>
           </div>
           <button class="btn" type="submit">Eintragen</button>
         </form>
       </section>
 
       <section class="panel">
-        <h2>Angelegte Felder</h2>
+        <h2>Angelegte Klassen</h2>
         <table class="entry-table" id="entryTable">
           <thead>
-            <tr><th>Klasse</th><th>Note</th><th></th></tr>
+            <tr><th>Klasse</th><th>Stimmen</th><th>Ø Note</th><th></th></tr>
           </thead>
           <tbody id="entryTableBody"></tbody>
         </table>
-        <p id="entryEmptyHint" class="hint" style="display:none;">Noch keine Felder angelegt.</p>
+        <p id="entryEmptyHint" class="hint" style="display:none;">Noch keine Klassen angelegt.</p>
       </section>
 
       <section class="panel">
