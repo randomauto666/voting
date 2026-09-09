@@ -327,6 +327,74 @@ table.entry-table td.num{ font-family: 'Fraunces', serif; font-weight: 600; colo
   color: var(--ink);
 }
 
+/* -------- Notenverteilung je Klasse -------- */
+
+.dist-group{
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.dist-group:first-child{ padding-top: 0; }
+.dist-group:last-child{ border-bottom: none; padding-bottom: 0; }
+
+.dist-heading{
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink);
+  margin: 0 0 10px;
+}
+
+.dist-total{
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 400;
+  font-size: 0.76rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.dist-rows{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dist-row{
+  display: grid;
+  grid-template-columns: 56px 1fr 1.8em;
+  align-items: center;
+  gap: 8px;
+}
+
+.dist-row .dist-label{
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.dist-row .dist-track{
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  height: 9px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dist-row .dist-fill{
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+}
+
+.dist-row .dist-count{
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-align: right;
+  color: var(--ink);
+}
+
 .actions-row{
   display: flex;
   gap: 10px;
