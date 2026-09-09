@@ -61,7 +61,7 @@ header.masthead h1{
 header.masthead .tagline{
   font-size: 0.92rem;
   color: var(--muted);
-  max-width: 32ch;
+  max-width: 36ch;
   margin: 8px 0 0;
 }
 
@@ -87,8 +87,9 @@ header.masthead .tagline{
 
 .grid{
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 14px;
+  align-items: start;
 }
 
 .card{
@@ -122,7 +123,6 @@ header.masthead .tagline{
 .card .field .label{
   font-size: 0.7rem;
   color: var(--muted);
-  width: 3.6em;
   flex-shrink: 0;
   text-transform: lowercase;
 }
@@ -130,33 +130,11 @@ header.masthead .tagline{
 .card .field .value{
   font-family: 'Fraunces', serif;
   font-weight: 600;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   color: var(--ink);
 }
 
-.note-buttons{
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-button.note-btn{
-  flex: 1 1 0;
-  min-width: 38px;
-  border: 1px solid var(--border);
-  background: var(--surface-raised);
-  color: var(--ink);
-  font-family: 'Fraunces', serif;
-  font-weight: 600;
-  font-size: 1.05rem;
-  padding: 10px 0;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-button.note-btn:hover{ border-color: var(--gold); color: var(--gold); }
-button.note-btn:active{ transform: scale(0.95); }
+.card > .btn{ width: 100%; }
 
 .voted-msg{
   font-size: 0.9rem;
@@ -173,7 +151,19 @@ button.note-btn:active{ transform: scale(0.95); }
   padding: 40px 20px;
   text-align: center;
   border-radius: 10px;
+  grid-column: 1 / -1;
 }
+
+/* -------- Abstimm-Formular in der Karte -------- */
+
+.vote-form{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vote-form .actions-row{ margin-top: 2px; }
+.vote-form .actions-row .btn{ flex: 1; }
 
 /* -------- admin -------- */
 
@@ -212,7 +202,9 @@ button.note-btn:active{ transform: scale(0.95); }
   color: var(--muted);
 }
 
-.field-group input{
+.field-group input,
+.field-group select,
+.field-group textarea{
   border: 1px solid var(--border);
   background: var(--surface-raised);
   color: var(--ink);
@@ -221,9 +213,14 @@ button.note-btn:active{ transform: scale(0.95); }
   font-size: 0.95rem;
   border-radius: 6px;
   width: 100%;
+  resize: vertical;
 }
-.field-group input::placeholder{ color: #5C666A; }
-.field-group input:focus{ outline: 2px solid var(--gold); outline-offset: 1px; }
+.field-group textarea{ min-height: 70px; }
+.field-group input::placeholder,
+.field-group textarea::placeholder{ color: #5C666A; }
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus{ outline: 2px solid var(--gold); outline-offset: 1px; }
 
 .btn{
   border: 1px solid var(--gold);
@@ -239,6 +236,7 @@ button.note-btn:active{ transform: scale(0.95); }
   white-space: nowrap;
 }
 .btn:hover{ background: var(--gold-dim); border-color: var(--gold-dim); }
+.btn:disabled{ opacity: 0.5; cursor: default; }
 
 .btn.secondary{
   background: transparent;
@@ -278,11 +276,16 @@ table.entry-table td{
   white-space: nowrap;
 }
 table.entry-table td.num{ font-family: 'Fraunces', serif; font-weight: 600; color: var(--ink); }
+table.entry-table td.reason-cell{
+  white-space: normal;
+  color: var(--ink);
+  min-width: 220px;
+}
 
 .chart{
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .chart-row{
@@ -290,6 +293,23 @@ table.entry-table td.num{ font-family: 'Fraunces', serif; font-weight: 600; colo
   grid-template-columns: 100px 1fr 2.4em;
   align-items: center;
   gap: 10px;
+}
+
+button.chart-row-btn{
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 6px 8px;
+  margin: -6px -8px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+button.chart-row-btn:hover{
+  background: var(--surface-raised);
+  border-color: var(--border);
 }
 
 .chart-row .bar-label{
@@ -324,74 +344,6 @@ table.entry-table td.num{ font-family: 'Fraunces', serif; font-weight: 600; colo
   font-weight: 600;
   text-align: right;
   font-size: 0.95rem;
-  color: var(--ink);
-}
-
-/* -------- Notenverteilung je Klasse -------- */
-
-.dist-group{
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-}
-.dist-group:first-child{ padding-top: 0; }
-.dist-group:last-child{ border-bottom: none; padding-bottom: 0; }
-
-.dist-heading{
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-  font-family: 'Fraunces', serif;
-  font-weight: 600;
-  font-size: 1rem;
-  color: var(--ink);
-  margin: 0 0 10px;
-}
-
-.dist-total{
-  font-family: 'Work Sans', sans-serif;
-  font-weight: 400;
-  font-size: 0.76rem;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.dist-rows{
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.dist-row{
-  display: grid;
-  grid-template-columns: 56px 1fr 1.8em;
-  align-items: center;
-  gap: 8px;
-}
-
-.dist-row .dist-label{
-  font-size: 0.76rem;
-  color: var(--muted);
-}
-
-.dist-row .dist-track{
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  height: 9px;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.dist-row .dist-fill{
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-}
-
-.dist-row .dist-count{
-  font-family: 'Fraunces', serif;
-  font-weight: 600;
-  font-size: 0.82rem;
-  text-align: right;
   color: var(--ink);
 }
 
@@ -436,16 +388,60 @@ table.entry-table td.num{ font-family: 'Fraunces', serif; font-weight: 600; colo
   max-width: calc(100vw - 40px);
   text-align: center;
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  z-index: 200;
 }
 .toast.show{
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
 
-input[type="file"]{
-  font-size: 0.85rem;
-  color: var(--muted);
+/* -------- Detail-Modal (Admin) -------- */
+
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(6,8,9,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 300;
 }
+
+.modal-box{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 26px 24px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.modal-box h2{
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  margin: 0 0 16px;
+  padding-right: 30px;
+  color: var(--ink);
+}
+
+.modal-close{
+  position: absolute;
+  top: 18px; right: 18px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+.modal-close:hover{ color: var(--ink); }
 
 /* -------- responsive / mobile -------- */
 
@@ -473,13 +469,13 @@ input[type="file"]{
   .actions-row .btn{ width: 100%; }
 
   .chart-row{ grid-template-columns: 80px 1fr 2.1em; gap: 8px; }
+
+  .modal-box{ padding: 22px 16px; max-height: 85vh; }
 }
 
 @media (max-width: 400px){
   header.masthead h1{ font-size: 2rem; }
   .card{ padding: 18px 14px 16px; }
-  .note-buttons{ gap: 5px; }
-  button.note-btn{ min-width: 30px; padding: 9px 0; font-size: 0.95rem; }
 }
 
 @media (prefers-reduced-motion: reduce){
