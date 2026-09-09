@@ -17,7 +17,7 @@
     <header class="masthead">
       <div>
         <h1>Jahresabstimmung</h1>
-        <p class="tagline">Vergib pro Klasse eine Note von 1 (sehr gut) bis 6 (ungenügend) – das ist deine Stimme.</p>
+        <p class="tagline">Gib pro Schule deine Klasse, eine Note (1 = sehr gut, 6 = ungenügend) und einen kurzen Grund an – das ist deine Stimme.</p>
       </div>
       <a class="admin-link" href="#adminpage">Admin</a>
     </header>
@@ -49,47 +49,39 @@
       <header class="masthead admin-masthead">
         <div>
           <h1 class="admin-title">Adminbereich</h1>
-          <p class="tagline">Klassen anlegen und Ergebnisse einsehen.</p>
+          <p class="tagline">Schulen anlegen und Ergebnisse einsehen.</p>
         </div>
         <button id="logoutBtn" class="btn secondary" type="button">Abmelden</button>
       </header>
 
       <section class="panel">
-        <h2>Neue Klasse eintragen</h2>
+        <h2>Neue Schule eintragen</h2>
         <form id="addForm" class="field-row">
           <div class="field-group">
-            <label for="inKlasse">Klasse</label>
-            <input id="inKlasse" name="klasse" type="text" placeholder="z. B. 8b" required>
+            <label for="inSchule">Schule</label>
+            <input id="inSchule" name="schule" type="text" placeholder="z. B. Gesamtschule Nord" required>
           </div>
           <button class="btn" type="submit">Eintragen</button>
         </form>
       </section>
 
       <section class="panel">
-        <h2>Angelegte Klassen</h2>
+        <h2>Angelegte Schulen</h2>
         <table class="entry-table" id="entryTable">
           <thead>
-            <tr><th>Klasse</th><th>Stimmen</th><th>Ø Note</th><th></th></tr>
+            <tr><th>Schule</th><th>Stimmen</th><th>Ø Note</th><th></th></tr>
           </thead>
           <tbody id="entryTableBody"></tbody>
         </table>
-        <p id="entryEmptyHint" class="hint" style="display:none;">Noch keine Klassen angelegt.</p>
+        <p id="entryEmptyHint" class="hint" style="display:none;">Noch keine Schulen angelegt.</p>
       </section>
 
       <section class="panel">
-        <h2>Statistik – Stimmen pro Klasse</h2>
+        <h2>Statistik – Stimmen pro Schule</h2>
         <div id="chart" class="chart"></div>
         <p class="hint">
-          Zählt die Stimmen aller Abstimmenden zentral aus Supabase und aktualisiert sich live,
-          sobald neue Stimmen eingehen.
-        </p>
-      </section>
-
-      <section class="panel">
-        <h2>Notenverteilung je Klasse</h2>
-        <div id="distribution"></div>
-        <p class="hint">
-          Zeigt für jede Klasse, wie oft welche Note (1–6) vergeben wurde.
+          Zeigt Stimmenanzahl und Durchschnittsnote je Schule, live aktualisiert. Klick auf einen
+          Balken zeigt alle Einzelstimmen (Klasse, Note, Grund) dieser Schule.
         </p>
       </section>
 
@@ -99,13 +91,22 @@
           <button id="resetVotesBtn" class="btn danger" type="button">Alle Stimmen zurücksetzen</button>
         </div>
         <p class="hint">
-          Setzt die Stimmen aller Klassen für <strong>alle</strong> Abstimmenden auf 0 zurück
+          Löscht alle abgegebenen Stimmen aller Schulen unwiderruflich
           (gilt sofort für jeden, da die Daten zentral in Supabase liegen).
         </p>
       </section>
     </div>
   </div>
 
+</div>
+
+<!-- ============ DETAIL-MODAL (Admin) ============ -->
+<div id="detailModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <button id="modalClose" class="modal-close" type="button" aria-label="Schließen">✕</button>
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+  </div>
 </div>
 
 <div id="toast" class="toast"></div>
